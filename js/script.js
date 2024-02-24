@@ -1,5 +1,6 @@
 let currAudio = new Audio();
 let currFolder;
+let songs;
 let songInfo = document.querySelector(`.songInfo`);
 let timing = document.querySelector(`.timing`);
 let seekCircle = document.getElementById(`seek`);
@@ -10,14 +11,6 @@ let volIcon = document.querySelector(`#volIcon`);
 let playbar = document.querySelector(`.playbar`);
 let folderIndex = 5;
 let index;
-let hamburger = document.querySelector(`#menu`);
-hamburger.addEventListener(`click`,(e)=>{
-  document.querySelector(`.left`).style.display = `inline-block`;
-})
-let cross = document.querySelector(`#cross`)
-cross.addEventListener(`click`,(e)=>{
-  document.querySelector(`.left`).style.display = `none`;
-})
 
 // Step 1: To display album on website by scanning the songs folder
 const displayAlbums = async () => {
@@ -57,21 +50,21 @@ const displayAlbums = async () => {
     card.dataset.folder = folderInfo.name;
     // console.log(card);
     cardContainer.prepend(card);
-    
+
     card.addEventListener(`click`, (e) => {
       loadMusic(e.currentTarget.dataset.folder.toLowerCase());
       folderIndex = folders.indexOf(e.currentTarget.dataset.folder);
     });
   }
 
-// Album mai agea piche hone ke liye upar jo 2 buttons hai usse index 5 se start hai 0 ki wajah kyuki prepend kiya tha isliye songs folder ke song wale cards ulte order mai lage hai website pe
+  // Album mai agea piche hone ke liye upar jo 2 buttons hai usse index 5 se start hai 0 ki wajah kyuki prepend kiya tha isliye songs folder ke song wale cards ulte order mai lage hai website pe
   let prevAlbum = document.querySelector(`.prevAlbum`);
   prevAlbum.addEventListener(`click`, (e) => {
     console.log(`prevAlbum is clicked`);
     if (folderIndex < 5) {
       console.log(`select ${folderIndex + 1} album`);
       folderIndex++;
-      loadMusic(folders[folderIndex])
+      loadMusic(folders[folderIndex]);
     }
   });
   let nextAlbum = document.querySelector(`.nextAlbum`);
@@ -80,14 +73,13 @@ const displayAlbums = async () => {
     if (folderIndex > 0) {
       console.log(`select ${folderIndex - 1} album`);
       folderIndex--;
-      loadMusic(folders[folderIndex])
+      loadMusic(folders[folderIndex]);
     }
   });
-
 };
 
 // album pe click karn pe jo puri songs ki list library mai add hogi
-const loadMusic = async (folder) => { 
+const loadMusic = async (folder) => {
   currFolder = folder;
   // currAudio.pause();
   let songList = document.querySelector(`.songs ul`);
@@ -98,7 +90,7 @@ const loadMusic = async (folder) => {
   let doc = document.createElement(`div`);
   doc.innerHTML = text;
   let anchors = Array.from(doc.querySelectorAll(`a`));
-  let songs = [];
+  songs = [];
   for (let i = 0; i < anchors.length; i++) {
     const anchor = anchors[i];
     if (anchor.href.endsWith(`.mp3`)) {
@@ -112,29 +104,11 @@ const loadMusic = async (folder) => {
   index = 0;
   play.src = "img/pause.svg";
   playbar.classList.remove(`vHid`);
-
-  //  Handling prev next button to go forward and backward in library
   let songName = decodeURI(currAudio.src.split("/").slice(-1)[0]);
-  //  console.log(songs);
-  //  console.log(songName)
+  console.log(songs);
+  console.log(songName);
   index = songs.indexOf(songName);
-  //  console.log(index);
-  let prev = document.querySelector(`#prev`);
-  prev.addEventListener("click", (e) => {
-    console.log("Previous button clicked");
-    if (index - 1 >= 0) {
-      index--; // Update the index
-      playMusic(folder, songs[index]);
-    }
-  });
-  let next = document.querySelector(`#next`);
-  next.addEventListener("click", (e) => {
-    console.log("Next button clicked");
-    if (index + 1 < songs.length) {
-      index++; // Update the index
-      playMusic(folder, songs[index]);
-    }
-  });
+  console.log(index);
 
   let songLi;
   for (let i = 0; i < songs.length; i++) {
@@ -172,8 +146,8 @@ const loadMusic = async (folder) => {
       playMusic(currFolder, e.currentTarget.querySelector(`p`).textContent);
       console.log(
         songs.indexOf(e.currentTarget.querySelector(`p`).textContent)
-        );
-        index = songs.indexOf(e.currentTarget.querySelector(`p`).textContent);
+      );
+      index = songs.indexOf(e.currentTarget.querySelector(`p`).textContent);
     });
   });
 };
@@ -197,9 +171,15 @@ const playMusic = (file, audio) => {
     const newTime = (seekPercentage / 100) * currAudio.duration;
     currAudio.currentTime = newTime;
   });
-  // Audio on loop
+  // Next audio of album automatically playing
   currAudio.addEventListener("ended", () => {
-    playMusic(file, audio);
+    console.log(`next song playing`);
+    if (index + 1 < songs.length) {
+      index++;
+      playMusic(currFolder, songs[index]);
+    } else {
+      play.src = "img/play.svg";
+    }
   });
 };
 
@@ -247,6 +227,34 @@ async function main() {
       volIcon.src = `img/volume.svg`;
       currAudio.volume = 0.2;
       volume.value = 20;
+    }
+  });
+  let hamburger = document.querySelector(`#menu`);
+  hamburger.addEventListener(`click`, (e) => {
+    document.querySelector(`.left`).style.display = `inline-block`;
+  });
+  let cross = document.querySelector(`#cross`);
+  cross.addEventListener(`click`, (e) => {
+    document.querySelector(`.left`).style.display = `none`;
+  });
+
+  //  Handling prev next button to go forward and backward in library
+  let prev = document.querySelector(`#prev`);
+  prev.addEventListener("click", (e) => {
+    console.log("Previous button clicked");
+    if (index - 1 >= 0) {
+      index--; // Update the index
+      play.src = "img/pause.svg";
+      playMusic(currFolder, songs[index]);
+    }
+  });
+  let next = document.querySelector(`#next`);
+  next.addEventListener("click", (e) => {
+    console.log("Next button clicked");
+    if (index + 1 < songs.length) {
+      index++; // Update the index
+      play.src = "img/pause.svg";
+      playMusic(currFolder, songs[index]);
     }
   });
 }
